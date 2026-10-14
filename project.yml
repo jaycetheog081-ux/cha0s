@@ -11,8 +11,8 @@ settings:
     PRODUCT_NAME: cha0s
     PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
     INFOPLIST_KEY_CFBundleDisplayName: cha0s
-    INFOPLIST_KEY_CFBundleShortVersionString: "0.2.0"
-    INFOPLIST_KEY_CFBundleVersion: "2"
+    INFOPLIST_KEY_CFBundleShortVersionString: "0.3.0"
+    INFOPLIST_KEY_CFBundleVersion: "3"
     INFOPLIST_KEY_UILaunchScreen_Generation: YES
     TARGETED_DEVICE_FAMILY: "1,2"
     IPHONEOS_DEPLOYMENT_TARGET: "15.0"
@@ -35,8 +35,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: cha0s
-        INFOPLIST_KEY_CFBundleShortVersionString: "0.2.0"
-        INFOPLIST_KEY_CFBundleVersion: "2"
+        INFOPLIST_KEY_CFBundleShortVersionString: "0.3.0"
+        INFOPLIST_KEY_CFBundleVersion: "3"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         TARGETED_DEVICE_FAMILY: "1,2"
