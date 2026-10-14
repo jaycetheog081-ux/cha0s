@@ -1,27 +1,79 @@
-name: cha0s
-options:
-  bundleIdPrefix: com.cha0s
-  deploymentTarget:
-    iOS: '15.0'
-  createIntermediateGroups: true
-settings:
-  base:
-    PRODUCT_NAME: cha0s
-    TARGETED_DEVICE_FAMILY: '1,2'
-    IPHONEOS_DEPLOYMENT_TARGET: '15.0'
-    GENERATE_INFOPLIST_FILE: YES
-targets:
-  cha0s:
-    type: application
-    platform: iOS
-    sources:
-      - path: LARA
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
-        PRODUCT_NAME: cha0s
-        INFOPLIST_KEY_CFBundleDisplayName: cha0s
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        CODE_SIGN_STYLE: Manual
-        CODE_SIGNING_ALLOWED: NO
+name: Build cha0s
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "LARA/**"
+      - "project.yml"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build iOS IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen generate
+
+      - name: Build cha0s
+        run: |
+          set -e
+          xcodebuild \
+            -project cha0s.xcodeproj \
+            -scheme cha0s \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned IPA
+        run: |
+          set -e
+
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/cha0s.app"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: cha0s.app was not generated."
+            echo "Available build products:"
+            find build/DerivedData/Build/Products -maxdepth 3 -print || true
+            exit 1
+          fi
+
+          mkdir -p build/Payload
+          cp -R "$APP_PATH" build/Payload/
+
+          cd build
+          zip -r cha0s-unsigned.ipa Payload
+          shasum -a 256 cha0s-unsigned.ipa > cha0s-unsigned.ipa.sha256
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cha0s-unsigned-ipa
+          path: |
+            build/cha0s-unsigned.ipa
+            build/cha0s-unsigned.ipa.sha256
+          if-no-files-found: error
+          retention-days: 14
