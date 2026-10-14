@@ -5,22 +5,30 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "LARA/**"
-      - "project.yml"
-      - ".github/workflows/build.yml"
+      - master
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Build iOS IPA
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout cha0s
         uses: actions/checkout@v4
+
+      - name: Check required files
+        run: |
+          set -eu
+
+          test -f project.yml
+          test -f LARA/BadQueryModule.h
+          test -f LARA/BadQueryModule.m
+          test -f LARA/bad_query/bad_query.h
+          test -f LARA/bad_query/bad_query.c
+
+          echo "Required project and bad_query files found."
 
       - name: Select Xcode
         run: |
@@ -33,47 +41,39 @@ jobs:
 
       - name: Generate Xcode project
         run: |
-          xcodegen generate
+          xcodegen generate --spec project.yml
 
-      - name: Build cha0s
+      - name: Build unsigned IPA
         run: |
-          set -e
+          set -o pipefail
+
           xcodebuild \
             -project cha0s.xcodeproj \
             -scheme cha0s \
             -configuration Release \
             -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build/DerivedData \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build | tee build.log
 
-      - name: Package unsigned IPA
+      - name: Package IPA
         run: |
-          set -e
+          set -eu
 
-          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/cha0s.app"
+          APP_PATH="build/Build/Products/Release-iphoneos/cha0s.app"
+          test -d "$APP_PATH"
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: cha0s.app was not generated."
-            echo "Available build products:"
-            find build/DerivedData/Build/Products -maxdepth 3 -print || true
-            exit 1
-          fi
+          mkdir -p ipa/Payload
+          cp -R "$APP_PATH" ipa/Payload/
+          cd ipa
+          zip -r ../cha0s-v0.6.0-build6.ipa Payload
 
-          mkdir -p build/Payload
-          cp -R "$APP_PATH" build/Payload/
-
-          cd build
-          zip -r cha0s-unsigned.ipa Payload
-          shasum -a 256 cha0s-unsigned.ipa > cha0s-unsigned.ipa.sha256
-
-      - name: Upload IPA artifact
+      - name: Upload build artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cha0s-unsigned-ipa
+          name: cha0s-v0.6.0-build6
           path: |
-            build/cha0s-unsigned.ipa
-            build/cha0s-unsigned.ipa.sha256
-          if-no-files-found: error
-          retention-days: 14
+            cha0s-v0.6.0-build6.ipa
+            build.log
+          if-no-files-found: warn
