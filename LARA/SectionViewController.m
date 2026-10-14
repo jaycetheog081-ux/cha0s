@@ -16,8 +16,9 @@
 - (instancetype)initWithSection:(NSString *)section
                         subtitle:(NSString *)subtitle
                           symbol:(NSString *)symbol {
+    self = [super init];
 
-    if ((self = [super init])) {
+    if (self) {
         _section = [section copy];
         _sectionSubtitle = [subtitle copy];
         _symbol = [symbol copy];
@@ -32,26 +33,26 @@
 
     self.view.backgroundColor = Theme.background;
 
-    UINavigationBarAppearance *navigationAppearance =
-        [UINavigationBarAppearance new];
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance =
+            [UINavigationBarAppearance new];
 
-    [navigationAppearance configureWithDefaultBackground];
-    navigationAppearance.backgroundColor = Theme.background;
-    navigationAppearance.titleTextAttributes = @{
-        NSForegroundColorAttributeName: Theme.text
-    };
+        [appearance configureWithDefaultBackground];
+        appearance.backgroundColor = Theme.background;
+        appearance.titleTextAttributes = @{
+            NSForegroundColorAttributeName: Theme.text
+        };
 
-    self.navigationController.navigationBar.standardAppearance =
-        navigationAppearance;
-
-    self.navigationController.navigationBar.scrollEdgeAppearance =
-        navigationAppearance;
+        self.navigationController.navigationBar.standardAppearance =
+            appearance;
+        self.navigationController.navigationBar.scrollEdgeAppearance =
+            appearance;
+    }
 
     self.navigationController.navigationBar.tintColor = Theme.accent;
 
     UIScrollView *scroll = [UIScrollView new];
     scroll.translatesAutoresizingMaskIntoConstraints = NO;
-
     [self.view addSubview:scroll];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -92,268 +93,325 @@
 
     icon.tintColor = Theme.accent;
     icon.contentMode = UIViewContentModeScaleAspectFit;
-    [icon.heightAnchor constraintEqualToConstant:48].active = YES;
-
+    [icon.heightAnchor constraintEqualToConstant:44].active = YES;
     [stack addArrangedSubview:icon];
 
     [stack addArrangedSubview:
         [Theme label:self.section
-                size:30
+                size:29
               weight:UIFontWeightHeavy
                color:Theme.text]];
 
     [stack addArrangedSubview:
         [Theme label:self.sectionSubtitle
-                size:15
+                size:14
               weight:UIFontWeightRegular
                color:Theme.muted]];
 
+    if ([self.section isEqualToString:@"Modules"]) {
+        [self buildResearchScreen:stack];
+    } else if ([self.section isEqualToString:@"Diagnostics"]) {
+        [self buildDiagnosticsScreen:stack];
+    } else if ([self.section isEqualToString:@"Settings"]) {
+        [self buildSettingsScreen:stack];
+    } else if ([self.section isEqualToString:@"Explore"]) {
+        [self buildExploreScreen:stack];
+    } else {
+        [self addCardTo:stack title:@"cha0s" lines:@[
+            @"Experimental iOS research toolkit.",
+            @"Research modules are not automatically executed.",
+            @"No exploit chain has been verified."
+        ]];
+    }
+}
+
+#pragma mark - UI helpers
+
+- (UIStackView *)newCardInStack:(UIStackView *)stack {
     UIView *card = [Theme card];
 
-    UIStackView *details = [UIStackView new];
-    details.axis = UILayoutConstraintAxisVertical;
-    details.spacing = 13;
-    details.translatesAutoresizingMaskIntoConstraints = NO;
+    UIStackView *content = [UIStackView new];
+    content.axis = UILayoutConstraintAxisVertical;
+    content.spacing = 12;
+    content.layoutMargins = UIEdgeInsetsMake(18, 18, 18, 18);
+    content.layoutMarginsRelativeArrangement = YES;
+    content.translatesAutoresizingMaskIntoConstraints = NO;
 
-    [card addSubview:details];
+    [card addSubview:content];
 
     [NSLayoutConstraint activateConstraints:@[
-        [details.topAnchor constraintEqualToAnchor:
-            card.topAnchor constant:18],
-        [details.bottomAnchor constraintEqualToAnchor:
-            card.bottomAnchor constant:-18],
-        [details.leadingAnchor constraintEqualToAnchor:
-            card.leadingAnchor constant:18],
-        [details.trailingAnchor constraintEqualToAnchor:
-            card.trailingAnchor constant:-18]
+        [content.topAnchor constraintEqualToAnchor:card.topAnchor],
+        [content.bottomAnchor constraintEqualToAnchor:card.bottomAnchor],
+        [content.leadingAnchor constraintEqualToAnchor:card.leadingAnchor],
+        [content.trailingAnchor constraintEqualToAnchor:card.trailingAnchor]
     ]];
 
-    if ([self.section isEqualToString:@"Modules"]) {
+    [stack addArrangedSubview:card];
+    return content;
+}
 
-        [details addArrangedSubview:
-            [Theme label:@"CVE Research"
-                    size:21
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
+- (void)addCardTo:(UIStackView *)stack
+           title:(NSString *)title
+           lines:(NSArray<NSString *> *)lines {
+    UIStackView *card = [self newCardInStack:stack];
 
-        [details addArrangedSubview:
-            [Theme label:@"Research records are informational. No exploits are executed by these modules."
+    [card addArrangedSubview:
+        [Theme label:title
+                size:17
+              weight:UIFontWeightBold
+               color:Theme.text]];
+
+    for (NSString *line in lines) {
+        [card addArrangedSubview:
+            [Theme label:line
                     size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        NSArray *records = @[
-            @{
-                @"id": @"CVE-2026-84635",
-                @"area": @"WebKit",
-                @"impact": @"Apple describes a logic issue that can cause unexpected process termination when processing malicious web content.",
-                @"status": @"iOS 27 applicability not confirmed.",
-                @"source": @"https://support.apple.com/en-ca/149039"
-            },
-            @{
-                @"id": @"CVE-2026-43664",
-                @"area": @"Accessibility",
-                @"impact": @"Apple describes a potential exposure of sensitive user data by an app.",
-                @"status": @"Listed in Apple's iOS 27 security advisory as an addressed issue; not a confirmed kernel exploit.",
-                @"source": @"https://support.apple.com/en-us/149034"
-            },
-            @{
-                @"id": @"CVE-2026-65415",
-                @"area": @"Kernel",
-                @"impact": @"Apple describes possible unexpected system termination or kernel-memory disclosure in the advisories reviewed.",
-                @"status": @"iOS 27 applicability not confirmed.",
-                @"source": @"https://support.apple.com/en-ca/149035"
-            },
-            @{
-                @"id": @"CVE-2026-84566",
-                @"area": @"Kernel",
-                @"impact": @"Apple describes possible unexpected system termination or kernel-memory corruption.",
-                @"status": @"The iOS 26.7 advisory documents this issue; applicability to iOS 27 needs verification.",
-                @"source": @"https://support.apple.com/en-us/149041"
-            }
-        ];
-
-        for (NSDictionary *record in records) {
-
-            UIView *separator = [UIView new];
-            separator.backgroundColor = Theme.muted;
-            separator.alpha = 0.25;
-            [separator.heightAnchor constraintEqualToConstant:1].active = YES;
-
-            [details addArrangedSubview:separator];
-
-            [details addArrangedSubview:
-                [Theme label:record[@"id"]
-                        size:17
-                      weight:UIFontWeightBold
-                       color:Theme.accent]];
-
-            [details addArrangedSubview:
-                [Theme label:record[@"area"]
-                        size:13
-                      weight:UIFontWeightSemibold
-                       color:Theme.text]];
-
-            [details addArrangedSubview:
-                [Theme label:record[@"impact"]
-                        size:13
-                      weight:UIFontWeightRegular
-                       color:Theme.text]];
-
-            [details addArrangedSubview:
-                [Theme label:record[@"status"]
-                        size:12
-                      weight:UIFontWeightMedium
-                       color:Theme.muted]];
-
-            [details addArrangedSubview:
-                [Theme label:[NSString stringWithFormat:
-                    @"Source: %@", record[@"source"]]
-                        size:11
-                      weight:UIFontWeightRegular
-                       color:Theme.mint]];
-        }
-
-        [details addArrangedSubview:
-            [Theme label:@"Chain status: NOT VERIFIED"
-                    size:15
-                  weight:UIFontWeightBold
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"A sequence of CVE identifiers does not establish a working exploit chain. Each vulnerability requires independent technical verification."
-                    size:12
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-    } else if ([self.section isEqualToString:@"Explore"]) {
-
-        NSString *documents =
-            NSSearchPathForDirectoriesInDomains(
-                NSDocumentDirectory,
-                NSUserDomainMask,
-                YES
-            ).firstObject ?: @"Unavailable";
-
-        NSString *temporary = NSTemporaryDirectory() ?: @"Unavailable";
-
-        [details addArrangedSubview:
-            [Theme label:@"Accessible locations"
-                    size:17
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:
-                @"Documents\n%@", documents]
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:
-                @"Temporary\n%@", temporary]
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"This explorer stays within the app's ordinary sandbox."
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.mint]];
-
-    } else if ([self.section isEqualToString:@"Diagnostics"]) {
-
-        NSDictionary *capabilities = CapabilityManager.status;
-
-        [details addArrangedSubview:
-            [Theme label:@"Current checks"
-                    size:17
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
-
-        for (NSString *key in @[
-            @"App sandbox",
-            @"Documents write",
-            @"Process UID",
-            @"Elevated access",
-            @"Exploit status"
-        ]) {
-            [details addArrangedSubview:
-                [Theme label:[NSString stringWithFormat:
-                    @"%@: %@", key, capabilities[key] ?: @"Unknown"]
-                        size:13
-                      weight:UIFontWeightRegular
-                       color:Theme.muted]];
-        }
-
-    } else if ([self.section isEqualToString:@"Settings"]) {
-
-        [details addArrangedSubview:
-            [Theme label:@"Appearance"
-                    size:18
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Choose how cha0s looks."
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        UISegmentedControl *selector =
-            [[UISegmentedControl alloc]
-                initWithItems:@[@"System", @"Light", @"Dark"]];
-
-        NSString *mode = [[NSUserDefaults standardUserDefaults]
-                          stringForKey:@"cha0sAppearanceMode"];
-
-        selector.selectedSegmentIndex =
-            [mode isEqualToString:@"light"] ? 1 :
-            [mode isEqualToString:@"dark"] ? 2 : 0;
-
-        [selector addTarget:self
-                     action:@selector(appearanceChanged:)
-           forControlEvents:UIControlEventValueChanged];
-
-        [details addArrangedSubview:selector];
-
-        [details addArrangedSubview:
-            [Theme label:@"System follows your device appearance."
-                    size:12
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"cha0s v0.3.0"
-                    size:18
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Experimental iOS research toolkit."
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:
-                @"Hardware identifier: %@", DeviceInfo.machine]
-                    size:12
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-    } else {
-
-        [details addArrangedSubview:
-            [Theme label:self.sectionSubtitle
-                    size:15
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
     }
+}
 
-    [stack addArrangedSubview:card];
+- (void)addRecordTo:(UIStackView *)stack
+                cve:(NSString *)cve
+               area:(NSString *)area
+               role:(NSString *)role
+             source:(NSString *)source {
+
+    UIStackView *card = [self newCardInStack:stack];
+
+    [card addArrangedSubview:
+        [Theme label:cve
+                size:18
+              weight:UIFontWeightBold
+               color:Theme.accent]];
+
+    [card addArrangedSubview:
+        [Theme label:area
+                size:13
+              weight:UIFontWeightSemibold
+               color:Theme.text]];
+
+    [card addArrangedSubview:
+        [Theme label:[NSString stringWithFormat:@"Proposed role: %@", role]
+                size:13
+              weight:UIFontWeightRegular
+               color:Theme.text]];
+
+    [card addArrangedSubview:
+        [Theme label:@"Compatibility: UNKNOWN"
+                size:13
+              weight:UIFontWeightBold
+               color:Theme.muted]];
+
+    [card addArrangedSubview:
+        [Theme label:@"The affected OS range and technical applicability have not been independently verified."
+                size:12
+              weight:UIFontWeightRegular
+               color:Theme.muted]];
+
+    UIButton *sourceButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [sourceButton setTitle:@"Open CVE reference" forState:UIControlStateNormal];
+    sourceButton.contentHorizontalAlignment =
+        UIControlContentHorizontalAlignmentLeft;
+    sourceButton.titleLabel.font = [UIFont systemFontOfSize:13
+                                                     weight:UIFontWeightSemibold];
+    sourceButton.accessibilityHint =
+        @"Opens the public CVE record in a browser.";
+
+    objc_setAssociatedObject(
+        sourceButton,
+        "cha0sCVEURL",
+        source,
+        OBJC_ASSOCIATION_COPY_NONATOMIC
+    );
+
+    [sourceButton addTarget:self
+                     action:@selector(openCVEReference:)
+           forControlEvents:UIControlEventTouchUpInside];
+
+    [card addArrangedSubview:sourceButton];
+}
+
+- (void)openCVEReference:(UIButton *)sender {
+    NSString *urlString = objc_getAssociatedObject(sender, "cha0sCVEURL");
+
+    NSURL *url = [NSURL URLWithString:urlString];
+
+    if (url && [url.scheme isEqualToString:@"https"]) {
+        [UIApplication.sharedApplication openURL:url
+                                         options:@{}
+                               completionHandler:nil];
+    }
+}
+
+#pragma mark - CVE research
+
+- (void)buildResearchScreen:(UIStackView *)stack {
+
+    [self addCardTo:stack
+              title:@"CVE Research"
+              lines:@[
+        @"Research records for the four proposed vulnerability identifiers.",
+        @"These records are leads for investigation, not proof of exploitability."
+    ]];
+
+    [self addRecordTo:stack
+                  cve:@"CVE-2026-84635"
+                 area:@"WebKit"
+                 role:@"Proposed entry point"
+               source:@"https://nvd.nist.gov/vuln/detail/CVE-2026-84635"];
+
+    [self addRecordTo:stack
+                  cve:@"CVE-2026-43664"
+                 area:@"Accessibility"
+                 role:@"Proposed sandbox escape"
+               source:@"https://nvd.nist.gov/vuln/detail/CVE-2026-43664"];
+
+    [self addRecordTo:stack
+                  cve:@"CVE-2026-65415"
+                 area:@"Kernel"
+                 role:@"Proposed kernel primitive"
+               source:@"https://nvd.nist.gov/vuln/detail/CVE-2026-65415"];
+
+    [self addRecordTo:stack
+                  cve:@"CVE-2026-84566"
+                 area:@"Kernel"
+                 role:@"Proposed privilege escalation"
+               source:@"https://nvd.nist.gov/vuln/detail/CVE-2026-84566"];
+
+    [self addCardTo:stack
+              title:@"Chain Assessment"
+              lines:@[
+        @"STATUS: UNVERIFIED",
+        @"No stage is considered working merely because its CVE identifier exists.",
+        @"The four vulnerabilities have not been demonstrated to form a compatible chain.",
+        @"No vulnerability is triggered by this screen."
+    ]];
+}
+
+#pragma mark - Device compatibility
+
+- (void)buildDiagnosticsScreen:(UIStackView *)stack {
+
+    NSString *machine = [DeviceInfo machine] ?: @"Unknown";
+    NSString *version = [DeviceInfo systemVersion] ?: @"Unknown";
+    NSString *build = [DeviceInfo systemBuild] ?: @"Unknown";
+
+    [self addCardTo:stack
+              title:@"Detected Device"
+              lines:@[
+        [NSString stringWithFormat:@"Hardware identifier: %@", machine],
+        [NSString stringWithFormat:@"iOS version: %@", version],
+        [NSString stringWithFormat:@"OS build: %@", build],
+        @"The build number may be unavailable to an ordinary sandboxed app."
+    ]];
+
+    [self addCardTo:stack
+              title:@"Compatibility Analysis"
+              lines:@[
+        @"CVE-2026-84635: UNKNOWN",
+        @"CVE-2026-43664: UNKNOWN",
+        @"CVE-2026-65415: UNKNOWN",
+        @"CVE-2026-84566: UNKNOWN",
+        @"Affected-version ranges have not yet been verified against authoritative records.",
+        @"A matching version alone does not prove that a vulnerability is exploitable."
+    ]];
+
+    NSDictionary *capabilities = [CapabilityManager status];
+
+    UIStackView *checks = [self newCardInStack:stack];
+
+    [checks addArrangedSubview:
+        [Theme label:@"Local Capability Checks"
+                size:17
+              weight:UIFontWeightBold
+               color:Theme.text]];
+
+    for (NSString *key in @[
+        @"App sandbox",
+        @"Documents write",
+        @"Process UID",
+        @"Elevated access",
+        @"Exploit status"
+    ]) {
+        [checks addArrangedSubview:
+            [Theme label:[NSString stringWithFormat:@"%@: %@",
+                key, capabilities[key] ?: @"Unknown"]
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+    }
+}
+
+#pragma mark - Explore
+
+- (void)buildExploreScreen:(UIStackView *)stack {
+
+    NSString *documents =
+        NSSearchPathForDirectoriesInDomains(
+            NSDocumentDirectory,
+            NSUserDomainMask,
+            YES
+        ).firstObject ?: @"Unavailable";
+
+    NSString *temporary = NSTemporaryDirectory() ?: @"Unavailable";
+
+    [self addCardTo:stack
+              title:@"Accessible Locations"
+              lines:@[
+        [NSString stringWithFormat:@"Documents:\n%@", documents],
+        [NSString stringWithFormat:@"Temporary:\n%@", temporary],
+        @"This explorer only reports locations available to the app."
+    ]];
+}
+
+#pragma mark - Settings
+
+- (void)buildSettingsScreen:(UIStackView *)stack {
+
+    UIStackView *card = [self newCardInStack:stack];
+
+    [card addArrangedSubview:
+        [Theme label:@"Appearance"
+                size:18
+              weight:UIFontWeightBold
+               color:Theme.text]];
+
+    [card addArrangedSubview:
+        [Theme label:@"Choose how cha0s looks."
+                size:13
+              weight:UIFontWeightRegular
+               color:Theme.muted]];
+
+    UISegmentedControl *selector =
+        [[UISegmentedControl alloc]
+            initWithItems:@[@"System", @"Light", @"Dark"]];
+
+    NSString *mode = [[NSUserDefaults standardUserDefaults]
+                      stringForKey:@"cha0sAppearanceMode"];
+
+    selector.selectedSegmentIndex =
+        [mode isEqualToString:@"light"] ? 1 :
+        [mode isEqualToString:@"dark"] ? 2 : 0;
+
+    [selector addTarget:self
+                 action:@selector(appearanceChanged:)
+       forControlEvents:UIControlEventValueChanged];
+
+    [card addArrangedSubview:selector];
+
+    [card addArrangedSubview:
+        [Theme label:@"System follows your device setting. Your selection is saved."
+                size:12
+              weight:UIFontWeightRegular
+               color:Theme.muted]];
+
+    [self addCardTo:stack
+              title:@"About cha0s"
+              lines:@[
+        @"Version 0.4.0 · Build 4",
+        @"Experimental iOS research toolkit.",
+        @"CVE compatibility is not proof of exploitability."
+    ]];
 }
 
 - (void)appearanceChanged:(UISegmentedControl *)sender {
@@ -363,7 +421,8 @@
         sender.selectedSegmentIndex == 2 ? @"dark" : @"system";
 
     [[NSUserDefaults standardUserDefaults]
-        setObject:mode forKey:@"cha0sAppearanceMode"];
+        setObject:mode
+           forKey:@"cha0sAppearanceMode"];
 
     UIUserInterfaceStyle style = UIUserInterfaceStyleUnspecified;
 
