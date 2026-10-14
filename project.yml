@@ -10,8 +10,8 @@ settings:
   base:
     PRODUCT_NAME: cha0s
     PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
-    MARKETING_VERSION: "0.6.0"
-    CURRENT_PROJECT_VERSION: "6"
+    MARKETING_VERSION: "0.7.0"
+    CURRENT_PROJECT_VERSION: "7"
     INFOPLIST_KEY_CFBundleDisplayName: cha0s
     INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
     INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
@@ -37,8 +37,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: cha0s
-        MARKETING_VERSION: "0.6.0"
-        CURRENT_PROJECT_VERSION: "6"
+        MARKETING_VERSION: "0.7.0"
+        CURRENT_PROJECT_VERSION: "7"
         INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
         INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
