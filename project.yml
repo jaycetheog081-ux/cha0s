@@ -1,0 +1,41 @@
+name: cha0s
+
+options:
+  bundleIdPrefix: com.cha0s
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    PRODUCT_NAME: cha0s
+    PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
+    INFOPLIST_KEY_CFBundleDisplayName: cha0s
+    INFOPLIST_KEY_CFBundleShortVersionString: "0.1.0"
+    INFOPLIST_KEY_CFBundleVersion: "1"
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    TARGETED_DEVICE_FAMILY: "1,2"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    SDKROOT: iphoneos
+    SWIFT_VERSION: "5.0"
+    CLANG_ENABLE_MODULES: YES
+    CODE_SIGNING_ALLOWED: NO
+
+targets:
+  cha0s:
+    type: application
+    platform: iOS
+    sources:
+      - path: LARA
+        excludes:
+          - "*.plist"
+    settings:
+      base:
+        PRODUCT_NAME: cha0s
+        PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: cha0s
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        TARGETED_DEVICE_FAMILY: "1,2"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        CODE_SIGNING_ALLOWED: NO
