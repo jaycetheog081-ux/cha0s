@@ -1,0 +1,27 @@
+name: cha0s
+options:
+  bundleIdPrefix: com.cha0s
+  deploymentTarget:
+    iOS: '15.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    PRODUCT_NAME: cha0s
+    TARGETED_DEVICE_FAMILY: '1,2'
+    IPHONEOS_DEPLOYMENT_TARGET: '15.0'
+    GENERATE_INFOPLIST_FILE: YES
+targets:
+  cha0s:
+    type: application
+    platform: iOS
+    sources:
+      - path: LARA
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
+        PRODUCT_NAME: cha0s
+        INFOPLIST_KEY_CFBundleDisplayName: cha0s
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGNING_ALLOWED: NO
