@@ -31,7 +31,6 @@
     [super viewDidLoad];
 
     self.view.backgroundColor = Theme.background;
-    self.navigationController.navigationBarHidden = NO;
 
     UINavigationBarAppearance *navigationAppearance =
         [UINavigationBarAppearance new];
@@ -52,6 +51,7 @@
 
     UIScrollView *scroll = [UIScrollView new];
     scroll.translatesAutoresizingMaskIntoConstraints = NO;
+
     [self.view addSubview:scroll];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -92,8 +92,8 @@
 
     icon.tintColor = Theme.accent;
     icon.contentMode = UIViewContentModeScaleAspectFit;
-
     [icon.heightAnchor constraintEqualToConstant:48].active = YES;
+
     [stack addArrangedSubview:icon];
 
     [stack addArrangedSubview:
@@ -128,7 +128,105 @@
             card.trailingAnchor constant:-18]
     ]];
 
-    if ([self.section isEqualToString:@"Explore"]) {
+    if ([self.section isEqualToString:@"Modules"]) {
+
+        [details addArrangedSubview:
+            [Theme label:@"CVE Research"
+                    size:21
+                  weight:UIFontWeightBold
+                   color:Theme.text]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Research records are informational. No exploits are executed by these modules."
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+        NSArray *records = @[
+            @{
+                @"id": @"CVE-2026-84635",
+                @"area": @"WebKit",
+                @"impact": @"Apple describes a logic issue that can cause unexpected process termination when processing malicious web content.",
+                @"status": @"iOS 27 applicability not confirmed.",
+                @"source": @"https://support.apple.com/en-ca/149039"
+            },
+            @{
+                @"id": @"CVE-2026-43664",
+                @"area": @"Accessibility",
+                @"impact": @"Apple describes a potential exposure of sensitive user data by an app.",
+                @"status": @"Listed in Apple's iOS 27 security advisory as an addressed issue; not a confirmed kernel exploit.",
+                @"source": @"https://support.apple.com/en-us/149034"
+            },
+            @{
+                @"id": @"CVE-2026-65415",
+                @"area": @"Kernel",
+                @"impact": @"Apple describes possible unexpected system termination or kernel-memory disclosure in the advisories reviewed.",
+                @"status": @"iOS 27 applicability not confirmed.",
+                @"source": @"https://support.apple.com/en-ca/149035"
+            },
+            @{
+                @"id": @"CVE-2026-84566",
+                @"area": @"Kernel",
+                @"impact": @"Apple describes possible unexpected system termination or kernel-memory corruption.",
+                @"status": @"The iOS 26.7 advisory documents this issue; applicability to iOS 27 needs verification.",
+                @"source": @"https://support.apple.com/en-us/149041"
+            }
+        ];
+
+        for (NSDictionary *record in records) {
+
+            UIView *separator = [UIView new];
+            separator.backgroundColor = Theme.muted;
+            separator.alpha = 0.25;
+            [separator.heightAnchor constraintEqualToConstant:1].active = YES;
+
+            [details addArrangedSubview:separator];
+
+            [details addArrangedSubview:
+                [Theme label:record[@"id"]
+                        size:17
+                      weight:UIFontWeightBold
+                       color:Theme.accent]];
+
+            [details addArrangedSubview:
+                [Theme label:record[@"area"]
+                        size:13
+                      weight:UIFontWeightSemibold
+                       color:Theme.text]];
+
+            [details addArrangedSubview:
+                [Theme label:record[@"impact"]
+                        size:13
+                      weight:UIFontWeightRegular
+                       color:Theme.text]];
+
+            [details addArrangedSubview:
+                [Theme label:record[@"status"]
+                        size:12
+                      weight:UIFontWeightMedium
+                       color:Theme.muted]];
+
+            [details addArrangedSubview:
+                [Theme label:[NSString stringWithFormat:
+                    @"Source: %@", record[@"source"]]
+                        size:11
+                      weight:UIFontWeightRegular
+                       color:Theme.mint]];
+        }
+
+        [details addArrangedSubview:
+            [Theme label:@"Chain status: NOT VERIFIED"
+                    size:15
+                  weight:UIFontWeightBold
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:@"A sequence of CVE identifiers does not establish a working exploit chain. Each vulnerability requires independent technical verification."
+                    size:12
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+    } else if ([self.section isEqualToString:@"Explore"]) {
 
         NSString *documents =
             NSSearchPathForDirectoriesInDomains(
@@ -165,32 +263,6 @@
                   weight:UIFontWeightMedium
                    color:Theme.mint]];
 
-    } else if ([self.section isEqualToString:@"Modules"]) {
-
-        [details addArrangedSubview:
-            [Theme label:@"Baseline diagnostics"
-                    size:16
-                  weight:UIFontWeightSemibold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:@"AVAILABLE · Reads ordinary app and device information."
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.mint]];
-
-        [details addArrangedSubview:
-            [Theme label:@"CVE research modules"
-                    size:16
-                  weight:UIFontWeightSemibold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:@"NOT IMPLEMENTED · Compatibility and exploitability have not been verified."
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.muted]];
-
     } else if ([self.section isEqualToString:@"Diagnostics"]) {
 
         NSDictionary *capabilities = CapabilityManager.status;
@@ -216,7 +288,7 @@
                        color:Theme.muted]];
         }
 
-    } else {
+    } else if ([self.section isEqualToString:@"Settings"]) {
 
         [details addArrangedSubview:
             [Theme label:@"Appearance"
@@ -230,48 +302,37 @@
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
-        UISegmentedControl *appearanceSelector =
+        UISegmentedControl *selector =
             [[UISegmentedControl alloc]
                 initWithItems:@[@"System", @"Light", @"Dark"]];
-
-        appearanceSelector.translatesAutoresizingMaskIntoConstraints = NO;
-        [appearanceSelector addTarget:self
-                               action:@selector(appearanceChanged:)
-                     forControlEvents:UIControlEventValueChanged];
 
         NSString *mode = [[NSUserDefaults standardUserDefaults]
                           stringForKey:@"cha0sAppearanceMode"];
 
-        if ([mode isEqualToString:@"light"]) {
-            appearanceSelector.selectedSegmentIndex = 1;
-        } else if ([mode isEqualToString:@"dark"]) {
-            appearanceSelector.selectedSegmentIndex = 2;
-        } else {
-            appearanceSelector.selectedSegmentIndex = 0;
-        }
+        selector.selectedSegmentIndex =
+            [mode isEqualToString:@"light"] ? 1 :
+            [mode isEqualToString:@"dark"] ? 2 : 0;
 
-        [details addArrangedSubview:appearanceSelector];
+        [selector addTarget:self
+                     action:@selector(appearanceChanged:)
+           forControlEvents:UIControlEventValueChanged];
+
+        [details addArrangedSubview:selector];
 
         [details addArrangedSubview:
-            [Theme label:@"System follows your iPhone's appearance. Light uses black text; Dark uses white text."
+            [Theme label:@"System follows your device appearance."
                     size:12
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
         [details addArrangedSubview:
-            [Theme label:@"cha0s v0.2.0"
+            [Theme label:@"cha0s v0.3.0"
                     size:18
                   weight:UIFontWeightBold
                    color:Theme.text]];
 
         [details addArrangedSubview:
-            [Theme label:@"Experimental iOS system research toolkit."
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Privacy: this build does not send telemetry or upload reports."
+            [Theme label:@"Experimental iOS research toolkit."
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
@@ -282,6 +343,14 @@
                     size:12
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
+
+    } else {
+
+        [details addArrangedSubview:
+            [Theme label:self.sectionSubtitle
+                    size:15
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
     }
 
     [stack addArrangedSubview:card];
@@ -289,21 +358,9 @@
 
 - (void)appearanceChanged:(UISegmentedControl *)sender {
 
-    NSString *mode;
-
-    switch (sender.selectedSegmentIndex) {
-        case 1:
-            mode = @"light";
-            break;
-
-        case 2:
-            mode = @"dark";
-            break;
-
-        default:
-            mode = @"system";
-            break;
-    }
+    NSString *mode =
+        sender.selectedSegmentIndex == 1 ? @"light" :
+        sender.selectedSegmentIndex == 2 ? @"dark" : @"system";
 
     [[NSUserDefaults standardUserDefaults]
         setObject:mode forKey:@"cha0sAppearanceMode"];
