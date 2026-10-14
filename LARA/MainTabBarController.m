@@ -10,94 +10,132 @@
 
     self.view.backgroundColor = Theme.background;
 
+    // Colorful, light bottom navigation.
+    self.tabBar.tintColor = Theme.accent;
+    self.tabBar.unselectedItemTintColor = Theme.muted;
+    self.tabBar.backgroundColor = UIColor.whiteColor;
+    self.tabBar.barTintColor = UIColor.whiteColor;
     self.tabBar.translucent = NO;
-    self.tabBar.backgroundColor = Theme.panel;
-    self.tabBar.barTintColor = Theme.panel;
-    self.tabBar.tintColor = Theme.text;
-    self.tabBar.unselectedItemTintColor = Theme.text;
 
-    if (@available(iOS 13.0, *)) {
-        UITabBarAppearance *appearance = [UITabBarAppearance new];
-        [appearance configureWithOpaqueBackground];
+    if (@available(iOS 15.0, *)) {
+        UITabBarAppearance *tabAppearance =
+            [UITabBarAppearance new];
 
-        appearance.backgroundColor = Theme.panel;
+        [tabAppearance configureWithDefaultBackground];
+        tabAppearance.backgroundColor = UIColor.whiteColor;
+        tabAppearance.shadowColor =
+            [UIColor colorWithWhite:0.0 alpha:0.08];
 
-        NSDictionary *textAttributes = @{
-            NSForegroundColorAttributeName: Theme.text
-        };
+        tabAppearance.stackedLayoutAppearance.selected.iconColor =
+            Theme.accent;
+        tabAppearance.stackedLayoutAppearance.selected.titleTextAttributes =
+            @{NSForegroundColorAttributeName: Theme.accent};
 
-        NSArray<UITabBarItemAppearance *> *layouts = @[
-            appearance.stackedLayoutAppearance,
-            appearance.inlineLayoutAppearance,
-            appearance.compactInlineLayoutAppearance
-        ];
+        tabAppearance.stackedLayoutAppearance.normal.iconColor =
+            Theme.muted;
+        tabAppearance.stackedLayoutAppearance.normal.titleTextAttributes =
+            @{NSForegroundColorAttributeName: Theme.muted};
 
-        for (UITabBarItemAppearance *itemAppearance in layouts) {
-            itemAppearance.normal.iconColor = Theme.text;
-            itemAppearance.selected.iconColor = Theme.text;
-
-            itemAppearance.normal.titleTextAttributes = textAttributes;
-            itemAppearance.selected.titleTextAttributes = textAttributes;
-        }
-
-        self.tabBar.standardAppearance = appearance;
-
-        if (@available(iOS 15.0, *)) {
-            self.tabBar.scrollEdgeAppearance = appearance;
-        }
+        self.tabBar.standardAppearance = tabAppearance;
+        self.tabBar.scrollEdgeAppearance = tabAppearance;
     }
 
-    DashboardViewController *home = [DashboardViewController new];
+    DashboardViewController *home =
+        [DashboardViewController new];
 
-    home.tabBarItem = [[UITabBarItem alloc]
-        initWithTitle:@"Home"
-        image:[UIImage systemImageNamed:@"circle.grid.2x2.fill"]
-        tag:0];
+    home.tabBarItem =
+        [[UITabBarItem alloc]
+            initWithTitle:@"Home"
+            image:[UIImage systemImageNamed:@"house.fill"]
+            tag:0];
 
-    NSArray *titles = @[
+    NSArray<NSString *> *titles = @[
         @"Explore",
         @"Modules",
         @"Diagnostics",
         @"Settings"
     ];
 
-    NSArray *subtitles = @[
+    NSArray<NSString *> *subtitles = @[
         @"Browse locations available to cha0s.",
-        @"Review research module status.",
-        @"Review local capability checks.",
-        @"Project information and appearance settings."
+        @"Manage available toolkit modules.",
+        @"Check device capabilities.",
+        @"Customize your cha0s experience."
     ];
 
-    NSArray *icons = @[
-        @"folder",
-        @"square.stack.3d.up",
+    NSArray<NSString *> *symbols = @[
+        @"folder.fill",
+        @"square.stack.3d.up.fill",
         @"waveform.path.ecg",
-        @"gearshape"
+        @"gearshape.fill"
     ];
 
-    NSMutableArray *controllers = [NSMutableArray array];
+    NSMutableArray<UIViewController *> *controllers =
+        [NSMutableArray array];
 
-    [controllers addObject:
-        [[UINavigationController alloc] initWithRootViewController:home]];
+    UINavigationController *homeNavigation =
+        [[UINavigationController alloc]
+            initWithRootViewController:home];
 
-    for (NSUInteger i = 0; i < titles.count; i++) {
-        SectionViewController *controller =
+    [self configureNavigationBar:homeNavigation.navigationBar];
+
+    [controllers addObject:homeNavigation];
+
+    for (NSUInteger index = 0;
+         index < titles.count;
+         index++) {
+
+        NSString *title = titles[index];
+
+        SectionViewController *section =
             [[SectionViewController alloc]
-                initWithSection:titles[i]
-                subtitle:subtitles[i]
-                symbol:icons[i]];
+                initWithSection:title
+                subtitle:subtitles[index]
+                symbol:symbols[index]];
 
-        controller.tabBarItem = [[UITabBarItem alloc]
-            initWithTitle:titles[i]
-            image:[UIImage systemImageNamed:icons[i]]
-            tag:i + 1];
+        section.tabBarItem =
+            [[UITabBarItem alloc]
+                initWithTitle:title
+                image:[UIImage systemImageNamed:symbols[index]]
+                tag:index + 1];
 
-        [controllers addObject:
+        UINavigationController *navigation =
             [[UINavigationController alloc]
-                initWithRootViewController:controller]];
+                initWithRootViewController:section];
+
+        [self configureNavigationBar:navigation.navigationBar];
+
+        [controllers addObject:navigation];
     }
 
     self.viewControllers = controllers;
+}
+
+- (void)configureNavigationBar:(UINavigationBar *)navigationBar {
+    navigationBar.tintColor = Theme.accent;
+    navigationBar.barTintColor = UIColor.whiteColor;
+    navigationBar.translucent = NO;
+
+    if (@available(iOS 13.0, *)) {
+        UINavigationBarAppearance *appearance =
+            [UINavigationBarAppearance new];
+
+        [appearance configureWithOpaqueBackground];
+
+        appearance.backgroundColor = UIColor.whiteColor;
+        appearance.titleTextAttributes =
+            @{NSForegroundColorAttributeName: Theme.text};
+
+        appearance.largeTitleTextAttributes =
+            @{NSForegroundColorAttributeName: Theme.text};
+
+        appearance.shadowColor =
+            [UIColor colorWithWhite:0.0 alpha:0.06];
+
+        navigationBar.standardAppearance = appearance;
+        navigationBar.scrollEdgeAppearance = appearance;
+        navigationBar.compactAppearance = appearance;
+    }
 }
 
 @end
