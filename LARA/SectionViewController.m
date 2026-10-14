@@ -14,8 +14,8 @@
 @implementation SectionViewController
 
 - (instancetype)initWithSection:(NSString *)section
-                        subtitle:(NSString *)subtitle
-                          symbol:(NSString *)symbol {
+                       subtitle:(NSString *)subtitle
+                         symbol:(NSString *)symbol {
     self = [super init];
 
     if (self) {
@@ -105,10 +105,100 @@
     ]];
 
     /*
+     * HOME
+     */
+
+    if ([self.section isEqualToString:@"Home"] ||
+        [self.section isEqualToString:@"Dashboard"]) {
+
+        NSString *version =
+            [[NSBundle mainBundle]
+                objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+
+        NSString *build =
+            [[NSBundle mainBundle]
+                objectForInfoDictionaryKey:@"CFBundleVersion"];
+
+        NSString *versionText =
+            [NSString stringWithFormat:@"cha0s v%@ (build %@)",
+                version ?: @"Unknown",
+                build ?: @"Unknown"];
+
+        [details addArrangedSubview:
+            [Theme label:versionText
+                    size:20
+                  weight:UIFontWeightHeavy
+                   color:Theme.text]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Experimental iOS system research toolkit."
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Device Information"
+                    size:17
+                  weight:UIFontWeightBold
+                   color:Theme.text]];
+
+        [details addArrangedSubview:
+            [Theme label:[NSString stringWithFormat:@"Hardware: %@",
+                          DeviceInfo.machine ?: @"Unknown"]
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:[NSString stringWithFormat:@"iOS: %@",
+                          DeviceInfo.systemVersion ?: @"Unknown"]
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:[NSString stringWithFormat:@"Build: %@",
+                          DeviceInfo.systemBuild ?: @"Unknown"]
+                    size:13
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Research Status"
+                    size:17
+                  weight:UIFontWeightBold
+                   color:Theme.text]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Device reporting: AVAILABLE"
+                    size:12
+                  weight:UIFontWeightMedium
+                   color:Theme.mint]];
+
+        [details addArrangedSubview:
+            [Theme label:@"CVE compatibility: UNKNOWN until verified"
+                    size:12
+                  weight:UIFontWeightMedium
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Exploit chain: UNVERIFIED"
+                    size:12
+                  weight:UIFontWeightMedium
+                   color:Theme.muted]];
+
+        [details addArrangedSubview:
+            [Theme label:@"Privacy: this screen does not upload diagnostic reports."
+                    size:12
+                  weight:UIFontWeightRegular
+                   color:Theme.muted]];
+    }
+
+    /*
      * EXPLORE
      */
 
-    if ([self.section isEqualToString:@"Explore"]) {
+    else if ([self.section isEqualToString:@"Explore"]) {
         NSString *documents =
             NSSearchPathForDirectoriesInDomains(
                 NSDocumentDirectory,
@@ -146,8 +236,7 @@
     /*
      * MODULES
      *
-     * These entries are research records only.
-     * Their identifiers, applicability, and exploitability must be verified.
+     * Research records only; not confirmed exploit components.
      */
 
     else if ([self.section isEqualToString:@"Modules"]) {
@@ -158,74 +247,48 @@
                    color:Theme.text]];
 
         [details addArrangedSubview:
-            [Theme label:@"Research entries are not proof of a working exploit."
+            [Theme label:@"Entries are research records, not proof of a working exploit."
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
-        NSArray<NSDictionary *> *researchEntries = @[
-            @{
-                @"identifier": @"CVE-2026-84635",
-                @"status": @"UNKNOWN"
-            },
-            @{
-                @"identifier": @"CVE-2026-43664",
-                @"status": @"UNKNOWN"
-            },
-            @{
-                @"identifier": @"CVE-2026-65415",
-                @"status": @"UNKNOWN"
-            },
-            @{
-                @"identifier": @"CVE-2026-84566",
-                @"status": @"UNKNOWN"
-            }
+        NSArray<NSString *> *identifiers = @[
+            @"CVE-2026-84635",
+            @"CVE-2026-43664",
+            @"CVE-2026-65415",
+            @"CVE-2026-84566"
         ];
 
-        for (NSDictionary *entry in researchEntries) {
-            NSString *identifier = entry[@"identifier"];
+        for (NSString *identifier in identifiers) {
+            UIStackView *entry = [UIStackView new];
+            entry.axis = UILayoutConstraintAxisVertical;
+            entry.spacing = 5;
 
-            UIView *entryView = [UIView new];
-            entryView.translatesAutoresizingMaskIntoConstraints = NO;
-
-            UIStackView *entryStack = [UIStackView new];
-            entryStack.axis = UILayoutConstraintAxisVertical;
-            entryStack.spacing = 5;
-            entryStack.translatesAutoresizingMaskIntoConstraints = NO;
-
-            [entryView addSubview:entryStack];
-
-            [NSLayoutConstraint activateConstraints:@[
-                [entryStack.topAnchor constraintEqualToAnchor:entryView.topAnchor constant:8],
-                [entryStack.bottomAnchor constraintEqualToAnchor:entryView.bottomAnchor constant:-8],
-                [entryStack.leadingAnchor constraintEqualToAnchor:entryView.leadingAnchor],
-                [entryStack.trailingAnchor constraintEqualToAnchor:entryView.trailingAnchor]
-            ]];
-
-            [entryStack addArrangedSubview:
+            [entry addArrangedSubview:
                 [Theme label:identifier
                         size:15
                       weight:UIFontWeightSemibold
                        color:Theme.text]];
 
-            [entryStack addArrangedSubview:
+            [entry addArrangedSubview:
                 [Theme label:@"Compatibility: UNKNOWN"
                         size:12
                       weight:UIFontWeightMedium
                        color:Theme.muted]];
 
-            [entryStack addArrangedSubview:
+            [entry addArrangedSubview:
                 [Theme label:@"Verification: NOT VERIFIED"
                         size:12
                       weight:UIFontWeightMedium
                        color:Theme.muted]];
 
-            [details addArrangedSubview:entryView];
+            [details addArrangedSubview:entry];
 
             UIView *separator = [UIView new];
             separator.backgroundColor = Theme.muted;
             separator.alpha = 0.2;
             [separator.heightAnchor constraintEqualToConstant:1].active = YES;
+
             [details addArrangedSubview:separator];
         }
 
@@ -257,21 +320,21 @@
 
         [details addArrangedSubview:
             [Theme label:[NSString stringWithFormat:@"Device: %@",
-                          DeviceInfo.machine]
+                          DeviceInfo.machine ?: @"Unknown"]
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
         [details addArrangedSubview:
             [Theme label:[NSString stringWithFormat:@"iOS Version: %@",
-                          DeviceInfo.systemVersion]
+                          DeviceInfo.systemVersion ?: @"Unknown"]
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
         [details addArrangedSubview:
             [Theme label:[NSString stringWithFormat:@"Build: %@",
-                          DeviceInfo.systemBuild]
+                          DeviceInfo.systemBuild ?: @"Unknown"]
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
@@ -291,11 +354,12 @@
         ];
 
         for (NSString *key in keys) {
-            NSString *value = capabilities[key];
+            id rawValue = capabilities[key];
 
-            if (![value isKindOfClass:[NSString class]]) {
-                value = @"Unknown";
-            }
+            NSString *value =
+                [rawValue isKindOfClass:[NSString class]]
+                    ? rawValue
+                    : @"Unknown";
 
             [details addArrangedSubview:
                 [Theme label:[NSString stringWithFormat:@"%@: %@",
@@ -306,83 +370,42 @@
         }
 
         [details addArrangedSubview:
-            [Theme label:@"A detected device or OS version does not establish vulnerability or elevated access."
+            [Theme label:@"Device identification does not prove vulnerability or elevated access."
                     size:12
                   weight:UIFontWeightMedium
                    color:Theme.muted]];
     }
 
     /*
-     * DASHBOARD / DEFAULT SECTION
+     * SETTINGS OR OTHER SECTIONS
      */
 
     else {
         [details addArrangedSubview:
-            [Theme label:@"cha0s v0.4.0"
+            [Theme label:self.section
                     size:20
                   weight:UIFontWeightHeavy
                    color:Theme.text]];
 
         [details addArrangedSubview:
-            [Theme label:@"Experimental iOS system research toolkit."
+            [Theme label:self.sectionSubtitle
                     size:13
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
 
-        [details addArrangedSubview:
-            [Theme label:@"Device Information"
-                    size:17
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
+        NSString *version =
+            [[NSBundle mainBundle]
+                objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+
+        NSString *build =
+            [[NSBundle mainBundle]
+                objectForInfoDictionaryKey:@"CFBundleVersion"];
 
         [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:@"Hardware: %@",
-                          DeviceInfo.machine]
+            [Theme label:[NSString stringWithFormat:@"Version: %@ (build %@)",
+                          version ?: @"Unknown",
+                          build ?: @"Unknown"]
                     size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:@"iOS: %@",
-                          DeviceInfo.systemVersion]
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:[NSString stringWithFormat:@"Build: %@",
-                          DeviceInfo.systemBuild]
-                    size:13
-                  weight:UIFontWeightRegular
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Research Status"
-                    size:17
-                  weight:UIFontWeightBold
-                   color:Theme.text]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Baseline device reporting: AVAILABLE"
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.mint]];
-
-        [details addArrangedSubview:
-            [Theme label:@"CVE compatibility: UNKNOWN until verified"
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Exploit chain: UNVERIFIED"
-                    size:12
-                  weight:UIFontWeightMedium
-                   color:Theme.muted]];
-
-        [details addArrangedSubview:
-            [Theme label:@"Privacy: this screen does not upload diagnostic reports."
-                    size:12
                   weight:UIFontWeightRegular
                    color:Theme.muted]];
     }
