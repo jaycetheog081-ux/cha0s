@@ -24,12 +24,7 @@ device diagnostics, and customization.
 capabilities, exploring accessible files, collecting diagnostics, and
 researching potential methods of extending what is possible on iOS.
 
-Inspired by the distinctive identities of Taurine, Chimera, and Amethyst,
-cha0s aims to combine a polished interface with a modular architecture
-designed for experimentation and future development.
-
-cha0s is an independent project. It is not a fork of LARA, Taurine,
-Chimera, or Amethyst.
+cha0s is an independent project. It is not a fork of Lara or another toolkit.
 
 ### Project goals
 
@@ -215,7 +210,7 @@ cha0s is an independent experimental software project intended for
 research, development, and educational purposes.
 
 It is not affiliated with or endorsed by Apple, Taurine, Chimera,
-Amethyst, or LARA.
+Amethyst, Lara, or other toolkits or jailbreaks.
 
 The project does not guarantee compatibility with any particular device
 or operating system build.
