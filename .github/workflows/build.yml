@@ -18,65 +18,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: |
-          set -eu
-          xcodebuild -version
-          xcode-select -p
-
       - name: Install XcodeGen
         run: |
           set -eu
           brew install xcodegen
-          xcodegen --version
-
-      - name: Check project files
-        run: |
-          set -eu
-
-          echo "Repository root:"
-          pwd
-
-          echo "Root directory contents:"
-          ls -la
-
-          if [ ! -f project.yml ]; then
-            echo "::error::project.yml is missing from the repository root."
-            exit 1
-          fi
-
-          if [ ! -d LARA ]; then
-            echo "::error::LARA source directory is missing."
-            exit 1
-          fi
-
-          echo "Project configuration:"
-          cat project.yml
-
-          echo "Source files:"
-          find LARA -type f -print
-
-          if [ -z "$(find LARA -type f \( -name '*.m' -o -name '*.mm' -o -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.swift' \) -print -quit)" ]; then
-            echo "::error::No supported source files were found in LARA."
-            exit 1
-          fi
-
-          if [ ! -f LARA/bad_query/bad_query.c ] || [ ! -f LARA/bad_query/bad_query.h ]; then
-            echo "::notice::The bad_query files are not at the expected paths; checking the repository for their actual locations."
-            find . -type f \( -name 'bad_query.c' -o -name 'bad_query.h' \) -print
-          fi
-
-      - name: Generate Xcode project
-        run: |
-          set -eu
           xcodegen generate
-          test -d cha0s.xcodeproj
-          xcodebuild -list -project cha0s.xcodeproj
 
       - name: Build cha0s
+        id: build
+        continue-on-error: true
         run: |
-          set -eu
-
+          set -o pipefail
           xcodebuild \
             -project cha0s.xcodeproj \
             -scheme cha0s \
@@ -85,29 +37,45 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            build 2>&1 | tee build.log
+
+      - name: Show concise errors
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "=== DashboardViewController.m errors ==="
+          grep -E 'DashboardViewController\.m:[0-9]+:[0-9]+: (error|fatal error):' build.log | head -15 || true
+
+          echo "=== Other compiler errors ==="
+          grep -E '/LARA/[^ ]+:[0-9]+:[0-9]+: (error|fatal error):' build.log \
+            | grep -v 'DashboardViewController.m:' \
+            | head -10 || true
+
+          echo "=== Build failure summary ==="
+          grep -E '\*\* BUILD FAILED \*\*|error:|fatal error:' build.log \
+            | tail -10 || true
+
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cha0s-build-log
+          path: build.log
+          retention-days: 3
+          if-no-files-found: ignore
+
+      - name: Stop if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
       - name: Package IPA
         run: |
           set -eu
-
           APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/cha0s.app"
-
-          if [ ! -d "$APP_PATH" ]; then
-            echo "::error::The compiled cha0s.app was not found."
-            find build/DerivedData/Build/Products -maxdepth 4 -print
-            exit 1
-          fi
-
-          mkdir -p build/Payload
+          test -d "$APP_PATH"
+          mkdir -p build/Payload artifacts
           cp -R "$APP_PATH" build/Payload/cha0s.app
-
-          mkdir -p artifacts
           ditto -c -k --sequesterRsrc --keepParent \
-            build/Payload \
-            artifacts/cha0s.ipa
-
-          test -s artifacts/cha0s.ipa
+            build/Payload artifacts/cha0s.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
@@ -116,14 +84,3 @@ jobs:
           path: artifacts/cha0s.ipa
           if-no-files-found: error
           retention-days: 14
-
-      - name: Upload build diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cha0s-build-diagnostics
-          path: |
-            project.yml
-            build/DerivedData/Logs/Build/
-          if-no-files-found: ignore
-          retention-days: 7
