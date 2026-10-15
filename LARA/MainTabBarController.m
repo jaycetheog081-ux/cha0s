@@ -1,6 +1,7 @@
 #import "MainTabBarController.h"
 #import "DashboardViewController.h"
 #import "SectionViewController.h"
+#import "ModuleViewController.h"
 #import "Theme.h"
 
 @implementation MainTabBarController
@@ -10,7 +11,6 @@
 
     self.view.backgroundColor = Theme.background;
 
-    // Colorful, light bottom navigation.
     self.tabBar.tintColor = Theme.accent;
     self.tabBar.unselectedItemTintColor = Theme.muted;
     self.tabBar.backgroundColor = UIColor.whiteColor;
@@ -28,17 +28,22 @@
 
         tabAppearance.stackedLayoutAppearance.selected.iconColor =
             Theme.accent;
+
         tabAppearance.stackedLayoutAppearance.selected.titleTextAttributes =
             @{NSForegroundColorAttributeName: Theme.accent};
 
         tabAppearance.stackedLayoutAppearance.normal.iconColor =
             Theme.muted;
+
         tabAppearance.stackedLayoutAppearance.normal.titleTextAttributes =
             @{NSForegroundColorAttributeName: Theme.muted};
 
         self.tabBar.standardAppearance = tabAppearance;
         self.tabBar.scrollEdgeAppearance = tabAppearance;
     }
+
+    NSMutableArray<UIViewController *> *controllers =
+        [NSMutableArray array];
 
     DashboardViewController *home =
         [DashboardViewController new];
@@ -49,6 +54,13 @@
             image:[UIImage systemImageNamed:@"house.fill"]
             tag:0];
 
+    UINavigationController *homeNavigation =
+        [[UINavigationController alloc]
+            initWithRootViewController:home];
+
+    [self configureNavigationBar:homeNavigation.navigationBar];
+    [controllers addObject:homeNavigation];
+
     NSArray<NSString *> *titles = @[
         @"Explore",
         @"Modules",
@@ -58,7 +70,7 @@
 
     NSArray<NSString *> *subtitles = @[
         @"Browse locations available to cha0s.",
-        @"Manage available toolkit modules.",
+        @"Manage and test available toolkit modules.",
         @"Check device capabilities.",
         @"Customize your cha0s experience."
     ];
@@ -70,38 +82,31 @@
         @"gearshape.fill"
     ];
 
-    NSMutableArray<UIViewController *> *controllers =
-        [NSMutableArray array];
-
-    UINavigationController *homeNavigation =
-        [[UINavigationController alloc]
-            initWithRootViewController:home];
-
-    [self configureNavigationBar:homeNavigation.navigationBar];
-
-    [controllers addObject:homeNavigation];
-
     for (NSUInteger index = 0;
          index < titles.count;
          index++) {
 
-        NSString *title = titles[index];
+        UIViewController *contentController = nil;
 
-        SectionViewController *section =
-            [[SectionViewController alloc]
-                initWithSection:title
-                subtitle:subtitles[index]
-                symbol:symbols[index]];
+        if ([titles[index] isEqualToString:@"Modules"]) {
+            contentController = [ModuleViewController new];
+        } else {
+            contentController =
+                [[SectionViewController alloc]
+                    initWithSection:titles[index]
+                    subtitle:subtitles[index]
+                    symbol:symbols[index]];
+        }
 
-        section.tabBarItem =
+        contentController.tabBarItem =
             [[UITabBarItem alloc]
-                initWithTitle:title
+                initWithTitle:titles[index]
                 image:[UIImage systemImageNamed:symbols[index]]
                 tag:index + 1];
 
         UINavigationController *navigation =
             [[UINavigationController alloc]
-                initWithRootViewController:section];
+                initWithRootViewController:contentController];
 
         [self configureNavigationBar:navigation.navigationBar];
 
@@ -123,6 +128,7 @@
         [appearance configureWithOpaqueBackground];
 
         appearance.backgroundColor = UIColor.whiteColor;
+
         appearance.titleTextAttributes =
             @{NSForegroundColorAttributeName: Theme.text};
 
