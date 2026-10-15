@@ -10,15 +10,12 @@
 @property (nonatomic, strong) UILabel *badQueryCompatibilityLabel;
 @property (nonatomic, strong) UIButton *badQueryRunButton;
 @property (nonatomic, strong) UIActivityIndicatorView *badQuerySpinner;
-
 @property (nonatomic, strong) UISwitch *confirmBeforeRunSwitch;
 @property (nonatomic, strong) UISwitch *detailedDiagnosticsSwitch;
 
 @end
 
 @implementation DashboardViewController
-
-#pragma mark - Dashboard
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -29,6 +26,8 @@
     [self buildDashboard];
 }
 
+#pragma mark - Dashboard
+
 - (void)buildDashboard {
     UIScrollView *scroll = [UIScrollView new];
     scroll.translatesAutoresizingMaskIntoConstraints = NO;
@@ -38,14 +37,10 @@
     [self.view addSubview:scroll];
 
     [NSLayoutConstraint activateConstraints:@[
-        [scroll.topAnchor constraintEqualToAnchor:
-            self.view.safeAreaLayoutGuide.topAnchor],
-        [scroll.bottomAnchor constraintEqualToAnchor:
-            self.view.bottomAnchor],
-        [scroll.leadingAnchor constraintEqualToAnchor:
-            self.view.leadingAnchor],
-        [scroll.trailingAnchor constraintEqualToAnchor:
-            self.view.trailingAnchor]
+        [scroll.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],
+        [scroll.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+        [scroll.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [scroll.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
     ]];
 
     UIStackView *stack = [UIStackView new];
@@ -58,16 +53,11 @@
     [scroll addSubview:stack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [stack.topAnchor constraintEqualToAnchor:
-            scroll.contentLayoutGuide.topAnchor],
-        [stack.bottomAnchor constraintEqualToAnchor:
-            scroll.contentLayoutGuide.bottomAnchor],
-        [stack.leadingAnchor constraintEqualToAnchor:
-            scroll.frameLayoutGuide.leadingAnchor],
-        [stack.trailingAnchor constraintEqualToAnchor:
-            scroll.frameLayoutGuide.trailingAnchor],
-        [stack.widthAnchor constraintEqualToAnchor:
-            scroll.frameLayoutGuide.widthAnchor]
+        [stack.topAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.topAnchor],
+        [stack.bottomAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.bottomAnchor],
+        [stack.leadingAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.leadingAnchor],
+        [stack.trailingAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.trailingAnchor],
+        [stack.widthAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.widthAnchor]
     ]];
 
     [stack addArrangedSubview:
@@ -90,16 +80,15 @@
 
     UILabel *footer =
         [Theme label:@"Independent project · No telemetry"
-                 size:11
-               weight:UIFontWeightMedium
-                color:Theme.muted];
+                size:11
+              weight:UIFontWeightMedium
+               color:Theme.muted];
 
     footer.textAlignment = NSTextAlignmentCenter;
-
     [stack addArrangedSubview:footer];
 }
 
-#pragma mark - Card Helpers
+#pragma mark - Helpers
 
 - (UIView *)cardWithContent:(UIView *)content {
     UIView *card = [Theme card];
@@ -108,28 +97,21 @@
     [card addSubview:content];
 
     [NSLayoutConstraint activateConstraints:@[
-        [content.topAnchor constraintEqualToAnchor:
-            card.topAnchor constant:17],
-        [content.bottomAnchor constraintEqualToAnchor:
-            card.bottomAnchor constant:-17],
-        [content.leadingAnchor constraintEqualToAnchor:
-            card.leadingAnchor constant:17],
-        [content.trailingAnchor constraintEqualToAnchor:
-            card.trailingAnchor constant:-17]
+        [content.topAnchor constraintEqualToAnchor:card.topAnchor constant:17],
+        [content.bottomAnchor constraintEqualToAnchor:card.bottomAnchor constant:-17],
+        [content.leadingAnchor constraintEqualToAnchor:card.leadingAnchor constant:17],
+        [content.trailingAnchor constraintEqualToAnchor:card.trailingAnchor constant:-17]
     ]];
 
     return card;
 }
 
 - (UIStackView *)verticalStack:(NSArray<UIView *> *)views {
-    UIStackView *stack =
-        [[UIStackView alloc] initWithArrangedSubviews:views];
-
+    UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:views];
     stack.axis = UILayoutConstraintAxisVertical;
     stack.spacing = 12;
     stack.alignment = UIStackViewAlignmentFill;
     stack.distribution = UIStackViewDistributionFill;
-
     return stack;
 }
 
@@ -145,27 +127,25 @@
 - (UIView *)overviewCard {
     UIStackView *content = [self verticalStack:@[
         [Theme label:@"Capability overview"
-                 size:18
-               weight:UIFontWeightBold
-                color:Theme.text],
+                size:18
+              weight:UIFontWeightBold
+               color:Theme.text],
 
-        [Theme label:
-            @"Baseline mode is active. Exploit modules are tested "
-             "individually and must pass their compatibility checks."
-                 size:13
-               weight:UIFontWeightRegular
-                color:Theme.muted],
+        [Theme label:@"Baseline mode is active. Exploit modules are tested individually and must pass their compatibility checks."
+                size:13
+              weight:UIFontWeightRegular
+               color:Theme.muted],
 
         [Theme label:@"●  EXPERIMENTAL BUILD · v0.1.0"
-                 size:11
-               weight:UIFontWeightBold
-                color:Theme.mint]
+                size:11
+              weight:UIFontWeightBold
+               color:Theme.mint]
     ]];
 
     return [self cardWithContent:content];
 }
 
-#pragma mark - Device Information
+#pragma mark - Device
 
 - (UIView *)deviceCard {
     NSString *deviceText = [NSString stringWithFormat:
@@ -215,7 +195,7 @@
     return [self cardWithContent:content];
 }
 
-#pragma mark - BadQuery Module
+#pragma mark - BadQuery
 
 - (UIView *)badQueryCard {
     self.badQueryCompatibilityLabel =
@@ -234,8 +214,7 @@
 
     self.badQueryStatusLabel.numberOfLines = 0;
 
-    self.badQueryRunButton =
-        [UIButton buttonWithType:UIButtonTypeSystem];
+    self.badQueryRunButton = [UIButton buttonWithType:UIButtonTypeSystem];
 
     [self.badQueryRunButton setTitle:@"Run Module Self-Test"
                             forState:UIControlStateNormal];
@@ -248,8 +227,7 @@
         [UIFont systemFontOfSize:15 weight:UIFontWeightBold];
 
     self.badQueryRunButton.layer.cornerRadius = 12;
-    self.badQueryRunButton.contentEdgeInsets =
-        UIEdgeInsetsMake(14, 16, 14, 16);
+    self.badQueryRunButton.contentEdgeInsets = UIEdgeInsetsMake(14, 16, 14, 16);
 
     [self.badQueryRunButton addTarget:self
                                action:@selector(runBadQueryPressed)
@@ -275,11 +253,8 @@
                color:Theme.mint],
 
         self.badQueryCompatibilityLabel,
-
         self.badQueryRunButton,
-
         self.badQuerySpinner,
-
         self.badQueryStatusLabel
     ]];
 
@@ -291,19 +266,14 @@
         return;
     }
 
-    BOOL requiresConfirmation =
-        [[NSUserDefaults standardUserDefaults]
-            boolForKey:@"cha0s.bad_query.confirm"];
+    BOOL confirm = [[NSUserDefaults standardUserDefaults]
+        boolForKey:@"cha0s.bad_query.confirm"];
 
-    if (requiresConfirmation) {
+    if (confirm) {
         UIAlertController *alert =
             [UIAlertController alertControllerWithTitle:@"Run bad_query self-test?"
-                                                message:
-                @"The module invokes its existing implementation "
-                 "against the app's temporary directory. A successful "
-                 "compatibility check does not guarantee safety."
-                                               preferredStyle:
-                UIAlertControllerStyleAlert];
+                                                message:@"The module invokes its existing implementation against the app's temporary directory. Compatibility does not guarantee safety."
+                                         preferredStyle:UIAlertControllerStyleAlert];
 
         [alert addAction:
             [UIAlertAction actionWithTitle:@"Cancel"
@@ -326,18 +296,14 @@
 
 - (void)executeBadQuerySelfTest {
     if (![BadQueryModule isSupported]) {
-        self.badQueryStatusLabel.text =
-            [BadQueryModule compatibilityStatus];
-
+        self.badQueryStatusLabel.text = [BadQueryModule compatibilityStatus];
         self.badQueryCompatibilityLabel.text =
             @"Compatibility check failed. The module was not executed.";
-
         return;
     }
 
     self.badQueryRunButton.enabled = NO;
     self.badQueryRunButton.alpha = 0.55;
-
     self.badQueryStatusLabel.text = @"Running module self-test…";
 
     [self.badQuerySpinner startAnimating];
@@ -354,34 +320,30 @@
             self.badQueryStatusLabel.text =
                 result ?: @"The module returned no status.";
 
-            BOOL showDetails =
-                [[NSUserDefaults standardUserDefaults]
-                    boolForKey:@"cha0s.bad_query.diagnostics"];
+            BOOL diagnostics = [[NSUserDefaults standardUserDefaults]
+                boolForKey:@"cha0s.bad_query.diagnostics"];
 
-            if (!showDetails) {
+            if (diagnostics) {
                 self.badQueryCompatibilityLabel.text =
-                    [BadQueryModule compatibilityStatus];
-            } else {
-                self.badQueryCompatibilityLabel.text =
-                    [NSString stringWithFormat:
-                        @"%@\nDevice build: %@",
+                    [NSString stringWithFormat:@"%@\nDevice build: %@",
                         [BadQueryModule compatibilityStatus],
                         DeviceInfo.systemBuild ?: @"Unknown"];
+            } else {
+                self.badQueryCompatibilityLabel.text =
+                    [BadQueryModule compatibilityStatus];
             }
         });
     });
 }
 
-#pragma mark - Module Tweaks
+#pragma mark - BadQuery Tweaks
 
 - (UIView *)badQueryTweaksCard {
-    BOOL confirm =
-        [[NSUserDefaults standardUserDefaults]
-            boolForKey:@"cha0s.bad_query.confirm"];
+    BOOL confirm = [[NSUserDefaults standardUserDefaults]
+        boolForKey:@"cha0s.bad_query.confirm"];
 
-    BOOL diagnostics =
-        [[NSUserDefaults standardUserDefaults]
-            boolForKey:@"cha0s.bad_query.diagnostics"];
+    BOOL diagnostics = [[NSUserDefaults standardUserDefaults]
+        boolForKey:@"cha0s.bad_query.diagnostics"];
 
     self.confirmBeforeRunSwitch = [UISwitch new];
     self.confirmBeforeRunSwitch.on = confirm;
@@ -413,12 +375,10 @@
                 subtitle:@"Show additional compatibility information."
                   toggle:self.detailedDiagnosticsSwitch],
 
-        [Theme label:
-            @"Compatibility checks remain mandatory. These settings "
-             "change the module interface, not the underlying exploit.",
-                 size:12
-               weight:UIFontWeightRegular
-                color:Theme.muted]
+        [Theme label:@"Compatibility checks remain mandatory. These settings change the module interface, not the underlying exploit."
+                size:12
+              weight:UIFontWeightRegular
+               color:Theme.muted]
     ]];
 
     return [self cardWithContent:content];
@@ -441,11 +401,8 @@
 
     textStack.spacing = 4;
 
-    UIStackView *row =
-        [[UIStackView alloc] initWithArrangedSubviews:@[
-            textStack,
-            toggle
-        ]];
+    UIStackView *row = [[UIStackView alloc]
+        initWithArrangedSubviews:@[textStack, toggle]];
 
     row.axis = UILayoutConstraintAxisHorizontal;
     row.spacing = 12;
@@ -471,8 +428,7 @@
 
     if (sender.isOn) {
         self.badQueryCompatibilityLabel.text =
-            [NSString stringWithFormat:
-                @"%@\nDevice build: %@",
+            [NSString stringWithFormat:@"%@\nDevice build: %@",
                 [BadQueryModule compatibilityStatus],
                 DeviceInfo.systemBuild ?: @"Unknown"];
     } else {
