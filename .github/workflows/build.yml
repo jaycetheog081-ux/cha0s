@@ -18,21 +18,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Diagnose repository files
-        run: |
-          echo "===== Repository root ====="
-          pwd
-          ls -la
-
-          echo "===== Project files ====="
-          find . -maxdepth 5 -type f \
-            ! -path "./.git/*" \
-            ! -path "./build/*" \
-            | sort
-
-      - name: Validate project configuration
+      - name: Select Xcode
         run: |
           set -eu
+          xcodebuild -version
+          xcode-select -p
+
+      - name: Install XcodeGen
+        run: |
+          set -eu
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Check project files
+        run: |
+          set -eu
+
+          echo "Repository root:"
+          pwd
+
+          echo "Root directory contents:"
+          ls -la
 
           if [ ! -f project.yml ]; then
             echo "::error::project.yml is missing from the repository root."
@@ -40,92 +46,84 @@ jobs:
           fi
 
           if [ ! -d LARA ]; then
-            echo "::error::LARA directory is missing."
+            echo "::error::LARA source directory is missing."
             exit 1
           fi
 
-          echo "Project configuration and LARA directory found."
+          echo "Project configuration:"
+          cat project.yml
 
-      - name: Check bad_query dependencies
-        id: badquery
-        continue-on-error: true
-        run: |
-          echo "===== Searching for bad_query files ====="
+          echo "Source files:"
+          find LARA -type f -print
 
-          HEADER="$(find LARA -type f -name bad_query.h -print -quit)"
-          SOURCE="$(find LARA -type f -name bad_query.c -print -quit)"
-
-          if [ -z "$HEADER" ]; then
-            echo "::error::bad_query.h was not found under LARA."
+          if [ -z "$(find LARA -type f \( -name '*.m' -o -name '*.mm' -o -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.swift' \) -print -quit)" ]; then
+            echo "::error::No supported source files were found in LARA."
             exit 1
           fi
 
-          if [ -z "$SOURCE" ]; then
-            echo "::error::bad_query.c was not found under LARA."
-            exit 1
+          if [ ! -f LARA/bad_query/bad_query.c ] || [ ! -f LARA/bad_query/bad_query.h ]; then
+            echo "::notice::The bad_query files are not at the expected paths; checking the repository for their actual locations."
+            find . -type f \( -name 'bad_query.c' -o -name 'bad_query.h' \) -print
           fi
-
-          echo "Header: $HEADER"
-          echo "Source: $SOURCE"
-          echo "bad_query dependencies found."
-
-      - name: Install XcodeGen
-        run: |
-          if ! command -v xcodegen >/dev/null 2>&1; then
-            brew install xcodegen
-          fi
-
-          xcodegen --version
 
       - name: Generate Xcode project
         run: |
-          xcodegen generate --spec project.yml
+          set -eu
+          xcodegen generate
+          test -d cha0s.xcodeproj
+          xcodebuild -list -project cha0s.xcodeproj
 
       - name: Build cha0s
-        id: build
         run: |
-          set -o pipefail
+          set -eu
 
           xcodebuild \
             -project cha0s.xcodeproj \
             -scheme cha0s \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath build \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
-            build 2>&1 | tee build.log
+            build
 
       - name: Package IPA
-        if: success()
         run: |
           set -eu
 
-          APP_PATH="build/Build/Products/Release-iphoneos/cha0s.app"
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/cha0s.app"
 
           if [ ! -d "$APP_PATH" ]; then
-            echo "::error::Built application bundle not found: $APP_PATH"
+            echo "::error::The compiled cha0s.app was not found."
+            find build/DerivedData/Build/Products -maxdepth 4 -print
             exit 1
           fi
 
-          mkdir -p ipa/Payload
-          cp -R "$APP_PATH" ipa/Payload/cha0s.app
+          mkdir -p build/Payload
+          cp -R "$APP_PATH" build/Payload/cha0s.app
 
-          cd ipa
-          zip -qr ../cha0s-v0.6.0-build6.ipa Payload
+          mkdir -p artifacts
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/Payload \
+            artifacts/cha0s.ipa
 
-      - name: Upload diagnostic logs
+          test -s artifacts/cha0s.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: cha0s-unsigned-ipa
+          path: artifacts/cha0s.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cha0s-build-diagnostics
           path: |
-            build.log
+            project.yml
+            build/DerivedData/Logs/Build/
           if-no-files-found: ignore
-
-      - name: Upload IPA
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cha0s-v0.6.0-build6
-          path: cha0s-v0.6.0-build6.ipa
-          if-no-files-found: error
+          retention-days: 7
