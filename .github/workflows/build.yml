@@ -15,35 +15,74 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - name: Checkout cha0s
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check required files
+      - name: Diagnose repository files
+        run: |
+          echo "===== Repository root ====="
+          pwd
+          ls -la
+
+          echo "===== Project files ====="
+          find . -maxdepth 5 -type f \
+            ! -path "./.git/*" \
+            ! -path "./build/*" \
+            | sort
+
+      - name: Validate project configuration
         run: |
           set -eu
 
-          test -f project.yml
-          test -f LARA/BadQueryModule.h
-          test -f LARA/BadQueryModule.m
-          test -f LARA/bad_query/bad_query.h
-          test -f LARA/bad_query/bad_query.c
+          if [ ! -f project.yml ]; then
+            echo "::error::project.yml is missing from the repository root."
+            exit 1
+          fi
 
-          echo "Required project and bad_query files found."
+          if [ ! -d LARA ]; then
+            echo "::error::LARA directory is missing."
+            exit 1
+          fi
 
-      - name: Select Xcode
+          echo "Project configuration and LARA directory found."
+
+      - name: Check bad_query dependencies
+        id: badquery
+        continue-on-error: true
         run: |
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          xcodebuild -version
+          echo "===== Searching for bad_query files ====="
+
+          HEADER="$(find LARA -type f -name bad_query.h -print -quit)"
+          SOURCE="$(find LARA -type f -name bad_query.c -print -quit)"
+
+          if [ -z "$HEADER" ]; then
+            echo "::error::bad_query.h was not found under LARA."
+            exit 1
+          fi
+
+          if [ -z "$SOURCE" ]; then
+            echo "::error::bad_query.c was not found under LARA."
+            exit 1
+          fi
+
+          echo "Header: $HEADER"
+          echo "Source: $SOURCE"
+          echo "bad_query dependencies found."
 
       - name: Install XcodeGen
         run: |
-          brew install xcodegen
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+
+          xcodegen --version
 
       - name: Generate Xcode project
         run: |
           xcodegen generate --spec project.yml
 
-      - name: Build unsigned IPA
+      - name: Build cha0s
+        id: build
         run: |
           set -o pipefail
 
@@ -54,26 +93,39 @@ jobs:
             -sdk iphoneos \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
-            build | tee build.log
+            build 2>&1 | tee build.log
 
       - name: Package IPA
+        if: success()
         run: |
           set -eu
 
           APP_PATH="build/Build/Products/Release-iphoneos/cha0s.app"
-          test -d "$APP_PATH"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::Built application bundle not found: $APP_PATH"
+            exit 1
+          fi
 
           mkdir -p ipa/Payload
-          cp -R "$APP_PATH" ipa/Payload/
-          cd ipa
-          zip -r ../cha0s-v0.6.0-build6.ipa Payload
+          cp -R "$APP_PATH" ipa/Payload/cha0s.app
 
-      - name: Upload build artifacts
+          cd ipa
+          zip -qr ../cha0s-v0.6.0-build6.ipa Payload
+
+      - name: Upload diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cha0s-v0.6.0-build6
+          name: cha0s-build-diagnostics
           path: |
-            cha0s-v0.6.0-build6.ipa
             build.log
-          if-no-files-found: warn
+          if-no-files-found: ignore
+
+      - name: Upload IPA
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cha0s-v0.6.0-build6
+          path: cha0s-v0.6.0-build6.ipa
+          if-no-files-found: error
