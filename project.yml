@@ -4,13 +4,20 @@ options:
   bundleIdPrefix: com.cha0s
   deploymentTarget:
     iOS: "15.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
 
 settings:
   base:
-    SWIFT_VERSION: "5.0"
-    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
+    PRODUCT_NAME: cha0s
+    INFOPLIST_KEY_CFBundleDisplayName: cha0s
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UIStatusBarHidden: YES
+    INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
     TARGETED_DEVICE_FAMILY: "1,2"
-    CODE_SIGNING_ALLOWED: "NO"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    CODE_SIGNING_ALLOWED: NO
 
 targets:
   cha0s:
@@ -19,22 +26,14 @@ targets:
 
     sources:
       - path: LARA
-        excludes:
-          - "**/*.md"
-          - "**/README*"
-          - "**/LICENSE*"
 
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cha0s.toolkit
         PRODUCT_NAME: cha0s
         INFOPLIST_KEY_CFBundleDisplayName: cha0s
-        INFOPLIST_KEY_CFBundleShortVersionString: "0.6.0"
-        INFOPLIST_KEY_CFBundleVersion: "6"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
-        HEADER_SEARCH_PATHS:
-          - "$(inherited)"
-          - "$(SRCROOT)/LARA"
-          - "$(SRCROOT)/LARA/bad_query"
-        CLANG_ENABLE_MODULES: YES
+        SWIFT_VERSION: "5.0"
