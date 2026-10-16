@@ -262,12 +262,13 @@
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
     self.searchBar.translatesAutoresizingMaskIntoConstraints = NO;
     self.searchBar.delegate = self;
-    self.searchBar.placeholder = @"Search tweaks";
+    self.searchBar.placeholder = @"Search tweaks, categories, or status";
     self.searchBar.searchBarStyle = UISearchBarStyleMinimal;
     self.searchBar.tintColor = Theme.accent;
     self.searchBar.backgroundColor = Theme.background;
     self.searchBar.autocapitalizationType = UITextAutocapitalizationTypeNone;
     self.searchBar.autocorrectionType = UITextAutocorrectionTypeNo;
+    self.searchBar.returnKeyType = UIReturnKeySearch;
 
     [self.view addSubview:self.searchBar];
 }
@@ -286,6 +287,7 @@
     self.tableView.separatorColor = UIColor.separatorColor;
     self.tableView.rowHeight = 68.0;
     self.tableView.estimatedRowHeight = 68.0;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
 
     [self.tableView registerClass:[UITableViewCell class]
            forCellReuseIdentifier:@"TweakCell"];
@@ -358,13 +360,6 @@
         [UIImage systemImageNamed:feature[@"symbol"]
                 withConfiguration:symbolConfiguration];
 
-    UIImageView *iconView =
-        [[UIImageView alloc] initWithImage:symbolImage];
-
-    iconView.tintColor = Theme.accent;
-    iconView.contentMode = UIViewContentModeScaleAspectFit;
-    iconView.frame = CGRectMake(0, 0, 28, 28);
-
     cell.imageView.image = symbolImage;
     cell.imageView.tintColor = Theme.accent;
     cell.imageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -384,13 +379,16 @@
     NSDictionary *feature = self.filteredFeatures[indexPath.row];
 
     NSString *title = feature[@"name"];
+    NSString *category = feature[@"category"];
     NSString *detail = feature[@"detail"];
     NSString *status = feature[@"status"];
 
     NSString *message =
-        [NSString stringWithFormat:@"%@\n\nStatus: %@",
-                                   detail,
-                                   status];
+        [NSString stringWithFormat:
+            @"Category: %@\n\n%@\n\nStatus: %@",
+            category,
+            detail,
+            status];
 
     UIAlertController *alert =
         [UIAlertController alertControllerWithTitle:title
@@ -425,9 +423,10 @@
             [NSMutableArray array];
 
         for (NSDictionary *feature in self.allFeatures) {
-            NSString *name = feature[@"name"];
-            NSString *category = feature[@"category"];
-            NSString *detail = feature[@"detail"];
+            NSString *name = feature[@"name"] ?: @"";
+            NSString *category = feature[@"category"] ?: @"";
+            NSString *detail = feature[@"detail"] ?: @"";
+            NSString *status = feature[@"status"] ?: @"";
 
             BOOL matchesName =
                 [name localizedCaseInsensitiveContainsString:query];
@@ -438,7 +437,14 @@
             BOOL matchesDetail =
                 [detail localizedCaseInsensitiveContainsString:query];
 
-            if (matchesName || matchesCategory || matchesDetail) {
+            BOOL matchesStatus =
+                [status localizedCaseInsensitiveContainsString:query];
+
+            if (matchesName ||
+                matchesCategory ||
+                matchesDetail ||
+                matchesStatus) {
+
                 [matches addObject:feature];
             }
         }
